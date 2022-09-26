@@ -1,0 +1,144 @@
+CREATE TABLE department(
+	departmentid INT PRIMARY KEY,
+    name VARCHAR(30),
+    head INT,
+    FOREIGN KEY(head) REFERENCES physician(employeeid) ON DELETE SET NULL
+);
+
+CREATE TABLE physician(
+	employeeid INT PRIMARY KEY,
+    name VARCHAR(30),
+    position VARCHAR(40),
+    ssn INT
+);
+
+CREATE TABLE medication(
+	code INT PRIMARY KEY,
+    name VARCHAR(40),
+    brand VARCHAR(40),
+    DESCRIPTION varchar(200)
+);
+
+CREATE TABLE block(
+	blockfloor INT UNIQUE,
+    blockcode INT UNIQUE,
+    PRIMARY KEY(blockfloor, blockcode)
+);
+
+CREATE TABLE nurse(
+	employeeid INT PRIMARY KEY,
+	name VARCHAR(30),
+    position VARCHAR(30),
+    registered BOOLEAN,
+    ssn INT
+);
+
+CREATE TABLE proced(
+	code INT PRIMARY KEY,
+    name VARCHAR(30),
+    cost REAL
+);
+
+CREATE TABLE trained_in(
+	physician INT,
+    treatment INT,
+    certificationdate DATE,
+    certificationexpires DATE,
+    PRIMARY KEY(physician, treatment),
+    FOREIGN KEY(physician) REFERENCES physician(employeeid) ON DELETE CASCADE,
+    FOREIGN KEY(treatment) REFERENCES proced(code) ON DELETE CASCADE
+);
+
+CREATE TABLE room(
+	 roomnumber INT PRIMARY KEY,
+     roomtype VARCHAR(30),
+     blockfloor INT,
+     blockcode INT,
+     unavailable BOOLEAN,
+     FOREIGN KEY(blockfloor) REFERENCES block(blockfloor) ON DELETE CASCADE,
+     FOREIGN KEY(blockcode) REFERENCES block(blockcode) ON DELETE CASCADE
+);
+
+ CREATE TABLE on_call(
+	nurse INT,
+    blockfloor INT,
+    blockcode INT,
+    oncallstart TIMESTAMP,
+    oncallend TIMESTAMP,
+    PRIMARY KEY(nurse, blockfloor, blockcode, oncallstart, oncallend),
+    FOREIGN KEY(blockfloor) REFERENCES block(blockfloor) ON DELETE CASCADE,
+    FOREIGN KEY(blockcode) REFERENCES block(blockcode) ON DELETE CASCADE,
+    FOREIGN KEY(nurse) REFERENCES nurse(employeeid) ON DELETE CASCADE
+ );
+
+CREATE TABLE patient(
+	ssn INT PRIMARY KEY,
+    name VARCHAR(40),
+    address VARCHAR(40),
+    phone VARCHAR(20),
+    insuranceid INT,
+    pcp INT,
+    FOREIGN KEY(pcp) REFERENCES physician(employeeid) ON DELETE SET NULL
+);
+
+CREATE TABLE appointment(
+	appointmentid INT PRIMARY KEY,
+	patient INT,
+	prepnurse INT,
+	physician INT,
+    start_dt_time TIMESTAMP,
+    end_dt_time TIMESTAMP,
+    examinationroom VARCHAR(30),
+    FOREIGN KEY(patient) REFERENCES patient(ssn) ON DELETE CASCADE,
+    FOREIGN KEY(prepnurse) REFERENCES nurse(employeeid) ON DELETE SET NULL,
+    FOREIGN KEY(physician) REFERENCES physician(employeeid) ON DELETE SET NULL
+);
+
+CREATE TABLE stay(
+ stayid INT PRIMARY KEY,
+ patient INT,
+ room INT,
+ start_time TIMESTAMP,
+ end_time TIMESTAMP,
+ FOREIGN KEY(patient) REFERENCES patient(ssn) ON DELETE CASCADE,
+ FOREIGN KEY(room) REFERENCES room(roomnumber) ON DELETE CASCADE
+);
+
+CREATE TABLE undergoes(
+	patient INT,
+    proced INT,
+    stay INT,
+    date TIMESTAMP,
+    physician INT,
+    assistingnurse INT,
+    PRIMARY KEY(patient, proced, stay, date),
+    FOREIGN KEY(patient) REFERENCES patient(ssn) ON DELETE CASCADE,
+    FOREIGN KEY(proced) REFERENCES proced(code) ON DELETE CASCADE,
+    FOREIGN KEY(stay) REFERENCES stay(stayid) ON DELETE CASCADE,
+    FOREIGN KEY(physician) REFERENCES physician(employeeid) ON DELETE SET NULL,
+    FOREIGN KEY(assistingnurse) REFERENCES nurse(employeeid) ON DELETE SET NULL
+);
+
+
+CREATE TABLE prescribes(
+	physician INT,
+    patient INT,
+    medication INT,
+    date TIMESTAMP,
+    appointment INT,
+    dose VARCHAR(40),
+    PRIMARY KEY(physician, patient, medication, date),
+    FOREIGN KEY(physician) REFERENCES physician(employeeid) ON DELETE CASCADE,
+    FOREIGN KEY(patient) REFERENCES patient(ssn) ON DELETE CASCADE,
+    FOREIGN KEY(medication) REFERENCES medication(code) ON DELETE CASCADE,
+    FOREIGN KEY(appointment) REFERENCES appointment(appointmentid) ON DELETE SET NULL
+);
+
+CREATE TABLE affiliated_with(
+	physician INT,
+    department INT,
+    primaryaffiliation BOOLEAN,
+    PRIMARY KEY(physician, department),
+    FOREIGN KEY(physician) REFERENCES physician(employeeid) ON DELETE CASCADE,
+    FOREIGN KEY(department) REFERENCES department(departmentid) ON DELETE CASCADE
+);
