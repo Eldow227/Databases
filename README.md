@@ -1,2 +1,5 @@
-# Databases
-This repository stores databases and queries created using SQL.
+In this repository I present my SQL code.
+
+You can find databases here and their schemes which I used to create them.
+
+
